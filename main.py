@@ -39,6 +39,10 @@ class AbstractCar:
         self.vel = min(self.vel + self.acceleration, self.max_vel)
         self.move()
 
+    def move_backward(self):
+            self.vel = max(self.vel - self.acceleration, -self.max_vel/2)
+            self.move()
+
     def move(self):
         radians = math.radians(self.angle)
         vertical = math.cos(radians) * self.vel
@@ -48,9 +52,14 @@ class AbstractCar:
         self.x -= horizontal
 
 
+
 class PlayerCar(AbstractCar):
     IMG = REDBULL_CAR
     START_POS = (180, 200)
+
+    def reduce_speed(self):
+        self.vel = max(self.vel - self.acceleration / 2, 0)
+        self.move()
 
 
 def draw(win, images, player_car):
@@ -59,6 +68,24 @@ def draw(win, images, player_car):
 
     player_car.draw(win)
     pygame.display.update()
+
+def move_player(player_car):
+
+    keys = pygame.key.get_pressed()
+    moved = False
+
+    if keys[pygame.K_a]:
+        player_car.rotate(left=True)
+    if keys[pygame.K_d]:
+        player_car.rotate(right=True)
+    if keys[pygame.K_w]:
+        move = True
+        player_car.move_forward()
+    if keys[pygame.K_s]:
+        move = True
+        player_car.move_backward()
+    if not moved:
+        player_car.reduce_speed()
 
 run = True
 clock = pygame.time.Clock()
@@ -74,15 +101,8 @@ while run:
         if event.type == pygame.QUIT:
             run = False
             break
+    move_player(player_car)
 
-    keys = pygame.key.get_pressed()
-
-    if keys[pygame.K_a]:
-        player_car.rotate(left=True)
-    if keys[pygame.K_d]:
-        player_car.rotate(right=True)
-    if keys[pygame.K_w]:
-        player_car.move_forward()
 
 
 
