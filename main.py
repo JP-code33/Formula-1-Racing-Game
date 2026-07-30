@@ -18,7 +18,28 @@ pygame.display.set_caption("Formula 1 Racing Game")
 
 
 FPS = 60
-PATH = [(173, 132), (119, 69), (60, 127), (69, 476), (329, 730), (399, 701), (412, 517), (502, 476), (595, 533), (618, 714), (731, 706), (739, 395), (681, 367), (462, 362), (394, 316), (463, 254), (695, 262), (742, 172), (716, 81), (336, 69), (283, 131), (227, 422), (174, 361), (289, 358)]
+PATH = [(190, 127), (117, 61), (46, 134), (69, 474), (351, 738), (402, 693), (413, 520), (510, 467), (604, 542), (666, 741), (744, 691), (735, 439), (682, 372), (457, 380), (404, 320), (466, 254), (687, 266), (738, 220), (744, 124), (670, 76), (359, 75), (282, 146), (266, 346), (234, 406), (161, 343), (176, 263)]
+
+class GameInfo:
+    LEVELS = 10
+
+    def __init__(self, level=1):
+        self.level = level
+        self.started = False
+        self.level_start_time = 0
+
+    def next_level(self):
+        self.level += 1
+        self.started = False
+
+    def reset(self):
+        self.level = 1
+        self.started = False
+        self.level_start_time = 0
+
+    def game_finished(self):
+        return self.level > self.LEVELS
+
 
 class AbstractCar:
     def __init__(self, max_vel, rotation_vel):
@@ -60,6 +81,7 @@ class AbstractCar:
         offset = (int(self.x - x), int(self.y - y))
         poi = mask.overlap(car_mask, offset)
         return poi
+
     def reset(self):
         self.x, self.y = self.START_POS
         self.angle = 0
@@ -99,7 +121,7 @@ class ComputerCar(AbstractCar):
 
     def draw(self, win):
         super().draw(win)
-        self.draw_points(win)
+        #self.draw_points(win)
 
     def calculate_angle(self):
         target_x, target_y = self.path[self.current_point]
@@ -163,11 +185,31 @@ def move_player(player_car):
     if not moved:
         player_car.reduce_speed()
 
+def handle_collision(player_car, Computer_car):
+    if player_car.collide(TRACK_BORDER_MASK) != None:
+            player_car.bounce()
+    
+    Computer_finish_poi_collide = player_car.collide(FINISH_MASK, *FINISH_POSITION)
+    if Computer_finish_poi_collide != None:
+            player_car.reset()
+            Computer_car.reset()
+    
+    
+    player_finish_poi_collide = player_car.collide(FINISH_MASK, *FINISH_POSITION)
+    if player_finish_poi_collide != None:
+        if player_finish_poi_collide[1] == 0:
+            print(player_finish_poi_collide)
+            player_car.bounce()
+        else:
+            player_car.reset()
+            Computer_car.reset()
+            print("finish")
+
 run = True
 clock = pygame.time.Clock()
 images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
 player_car = PlayerCar(3.5,3.5)
-Computer_car = ComputerCar(3.5,3.5, PATH)
+Computer_car = ComputerCar(2.5,3.5,PATH)
 
 while run:
     clock.tick(FPS)
@@ -179,20 +221,31 @@ while run:
             run = False
             break
 
+        #if event.type == pygame.MOUSEBUTTONDOWN:
+            pos = pygame.mouse.get_pos()
+            Computer_car.path.append(pos)
+        
     move_player(player_car)
     Computer_car.move()
+    handle_collision(player_car, Computer_car)
 
     if player_car.collide(TRACK_BORDER_MASK) != None:
         player_car.bounce()
 
-    finish_poi_collide = player_car.collide(FINISH_MASK, *FINISH_POSITION)
+    Computer_finish_poi_collide = Computer_car.collide(FINISH_MASK, *FINISH_POSITION)
+    if Computer_finish_poi_collide != None:
+        player_car.reset()
+        Computer_car.reset()
 
-    if finish_poi_collide != None:
-        if finish_poi_collide[1] == 0:
-            print(finish_poi_collide)
+
+    player_finish_poi_collide = player_car.collide(FINISH_MASK, *FINISH_POSITION)
+    if player_finish_poi_collide != None:
+        if player_finish_poi_collide[1] == 0:
+            print(player_finish_poi_collide)
             player_car.bounce()
         else:
             player_car.reset()
+            Computer_car.reset()
             print("finish")
 
 print(Computer_car.path)
@@ -200,5 +253,4 @@ print(Computer_car.path)
 pygame.quit()
 
 
-
-                                                                                                                                                                                                                                                                                           
+                                           
