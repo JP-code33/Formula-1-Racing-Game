@@ -16,7 +16,7 @@ W17_CAR = scale_image(pygame.image.load("imgs/w17.png"),0.0265)
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Formula 1 Racing Game")
-MAIN_FONT = pygame.font.SysFont("comicsans", 44)
+MAIN_FONT = pygame.font.SysFont("comicsans", 20)
 
 
 FPS = 60
@@ -175,9 +175,18 @@ class ComputerCar(AbstractCar):
         self.current_point = 0
         self.vel = self.max_vel
 
-def draw(win, images, player_car, computer_car):
+def draw(win, images, player_car, computer_car, game_info):
     for img, pos in images:
         win.blit(img, pos)
+
+    level_text = MAIN_FONT.render(f"Level {game_info.level}", 1, (255, 255, 255))
+    win.blit(level_text, (10, HEIGHT - level_text.get_height() -70))
+
+    time_text = MAIN_FONT.render(f"Time: {game_info.get_level_time()}s", 1, (255, 255, 255))
+    win.blit(time_text, (10, HEIGHT - time_text.get_height() -40))
+
+    vel_text = MAIN_FONT.render(f"Vel: {player_car.vel}px/s", 1, (255, 255, 255))
+    win.blit(vel_text, (10, HEIGHT - vel_text.get_height() -10))
 
     player_car.draw(win)
     computer_car.draw(win)
