@@ -11,12 +11,20 @@ TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER)
 FINISH = scale_image(pygame.image.load("imgs/Finish_line.png"), 0.22)
 FINISH_MASK = pygame.mask.from_surface(FINISH)
 FINISH_POSITION = (138, 250)
-REDBULL_CAR = scale_image(pygame.image.load("imgs/rb22.png"),0.03)
-W17_CAR = scale_image(pygame.image.load("imgs/w17.png"),0.0265)
+REDBULL= scale_image(pygame.image.load("imgs/rb22.png"),0.03)
+MERCEDES = scale_image(pygame.image.load("imgs/w17.png"),0.0265)
+FERRARI = scale_image(pygame.image.load("imgs./Ferrari.png"), 0.0475)
+MCLAREN = scale_image(pygame.image.load("imgs./Mclaren.png"), 0.0140)
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Formula 1 Racing Game")
+pygame.display.set_caption("Formula 1 Style Racing Game")
 MAIN_FONT = pygame.font.SysFont("comicsans", 20)
+CARS = [
+    ("Red Bull", REDBULL),
+    ("Mercedes", MERCEDES),
+    ("Ferrari", FERRARI),
+    ("McLaren", MCLAREN)
+]
 
 
 FPS = 60
@@ -53,8 +61,8 @@ class GameInfo:
 
 
 class AbstractCar:
-    def __init__(self, max_vel, rotation_vel):
-        self.img = self.IMG
+    def __init__(self, max_vel, rotation_vel, img):
+        self.img = img
         self.max_vel = max_vel
         self.vel = 0
         self.rotation_vel = rotation_vel
@@ -101,7 +109,7 @@ class AbstractCar:
 
 
 class PlayerCar(AbstractCar):
-    IMG = REDBULL_CAR
+    
     START_POS = (180, 200)
 
     def reduce_speed(self):
@@ -112,16 +120,25 @@ class PlayerCar(AbstractCar):
 
         self.move()
 
+    def __init__(self, img, max_vel, rotation_vel):
+        super().__init__(max_vel, rotation_vel, img)
+
     def bounce(self):
         self.vel = -self.vel
         self.move()
 
 class ComputerCar(AbstractCar):
-    IMG = W17_CAR
+    
     START_POS = (150, 200)
 
-    def __init__(self, max_vel, rotation_vel, path=[]):
-        super().__init__(max_vel, rotation_vel)
+    #def __init__(self, max_vel, rotation_vel, path=[]):
+        #super().__init__(max_vel, rotation_vel)
+        #self.path = path
+        #self.current_point = 0
+        #self.vel = max_vel
+
+    def __init__(self, img, max_vel, rotation_vel, path):
+        super().__init__(max_vel, rotation_vel, img)
         self.path = path
         self.current_point = 0
         self.vel = max_vel
@@ -241,12 +258,59 @@ def handle_collision(player_car, Computer_car, game_info):
             player_car.reset()
             Computer_car.next_level(game_info.level)
             
+def select_car(title_text, cars):
+    selected = 0
+
+    while True:
+        WIN.fill((30,30,30))
+        title = pygame.font.SysFont("comicsans", 40).render(title_text, True, (255, 255, 255))
+        WIN.blit(title, (WIDTH // 2 - title.get_width() // 2, 40))
+        mouse_pos = pygame.mouse.get_pos()
+
+        for i, (name, image) in enumerate(cars):
+            x = 120 + i * 170
+            y = 180
+
+            WIN.blit(image, (x, y))
+
+            text = MAIN_FONT.render(name, True, (255, 255, 255))
+            WIN.blit(text, (x, y + image.get_height() + 10))
+
+            rect = pygame.Rect(
+                x, y, image.get_width(), image.get_height()
+            )
+
+            if i == selected:
+                pygame.draw.rect(WIN, (255, 255, 0), rect.inflate(10, 10), 3)
+
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    selected = (selected + 1) % len(cars)
+
+                elif event.key == pygame.K_LEFT:
+                    selected = (selected - 1) % len(cars)
+
+                elif event.key == pygame.K_RETURN:
+                    return cars[selected][1]
+
+
 
 run = True
 clock = pygame.time.Clock()
 images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
-player_car = PlayerCar(3.5,4)
-Computer_car = ComputerCar(1.5,4,PATH)
+selected_car = select_car("Choose Your Car", CARS)
+available_opponents = []
+for name, image in CARS:
+    if image != selected_car:
+        available_opponents.append((name, image))
+selected_opponent = select_car("Choose Your Opponent", available_opponents)
+player_car = PlayerCar(selected_car, 3.5, 4)
+Computer_car = ComputerCar(selected_opponent, 1.5, 4, PATH)
 game_info = GameInfo()
 
 while run:
