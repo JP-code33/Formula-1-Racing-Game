@@ -19,6 +19,8 @@ WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Formula 1 Style Racing Game")
 MAIN_FONT = pygame.font.SysFont("comicsans", 20)
+LIGHT_RADIUS = 22
+LIGHT_SPACING = 18
 CARS = [
     ("Red Bull", REDBULL),
     ("Mercedes", MERCEDES),
@@ -216,6 +218,32 @@ def draw(win, images, player_car, computer_car, game_info):
     computer_car.draw(win)
     pygame.display.update()
 
+def start_lights():
+    for lights_on in range(1,6):
+        start = time.time()
+        while time.time() - start < 1:
+            WIN.fill((20,20,20))
+            title = pygame.font.SysFont("comicsans", 45).render("Get Ready!", True, (255, 255, 255))
+            WIN.blit(title, (WIDTH//2 - title.get_width()//2, 120))
+            total_width = LIGHT_RADIUS * 2 * 5 + LIGHT_SPACING *4 
+            start_x = WIDTH//2 - total_width//2
+            y = 250
+
+            for i in range(5):
+                color = (255, 0, 0) if i < lights_on else(70, 70, 70)
+                pygame.draw.circle(WIN, color, (start_x + i*(LIGHT_RADIUS*2 + LIGHT_SPACING), y),LIGHT_RADIUS)
+
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+    WIN.fill((20,20,20))
+    text = pygame.font.SysFont("comicsans", 50).render("GO!", True, (255, 255, 255))     
+    WIN.blit(text, (WIDTH//2-text.get_width()//2, 220))      
+    pygame.display.update()
+    pygame.time.wait(500)         
+
 def move_player(player_car):
 
     keys = pygame.key.get_pressed()
@@ -309,6 +337,7 @@ for name, image in CARS:
     if image != selected_car:
         available_opponents.append((name, image))
 selected_opponent = select_car("Choose Your Opponent", available_opponents)
+start_lights()
 player_car = PlayerCar(selected_car, 3.5, 4)
 Computer_car = ComputerCar(selected_opponent, 1.5, 4, PATH)
 game_info = GameInfo()
@@ -347,4 +376,5 @@ while run:
 
 print(Computer_car.path)
 
-pygame.quit()                                          
+pygame.quit()   
+                                       
