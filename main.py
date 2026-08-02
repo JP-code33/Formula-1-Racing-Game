@@ -61,7 +61,28 @@ class GameInfo:
             return 0 
         return round(time.time() - self.level_start_time)
 
+class Button:
+    def __init__(self, x, y, width, height, text):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
 
+        self.font = pygame.font.SysFont("comicsans", 32)
+        self.normal_color = (40,40,40)
+        self.hover_color = (220,30,30)
+        self.text_color = (255,255,255)
+
+    def draw(self, win):
+        mouse = pygame.mouse.get_pos()
+        color = self.normal_color
+        if self.rect.collidepoint(mouse):
+            color = self.normal_color
+        pygame.draw.rect(win, color, self.rect, border_radius=12)
+        text = self.font.render(self.text, True, self.text_color)
+        win.blit(text, (self.rect.centerx - text.get_width() // 2, self.rect.centery - text.get_height() // 2),)
+
+    def clicked(self, event):
+        return(event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.rect.collidepoint(event.pos))
+                
 class AbstractCar:
     def __init__(self, max_vel, rotation_vel, img):
         self.img = img
@@ -310,12 +331,14 @@ def select_car(title_text, cars):
 
             if i == selected:
                 pygame.draw.rect(WIN, (255, 255, 0), rect.inflate(10, 10), 3)
-
+        back_button.draw(WIN)
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+            if back_button.clicked(event):
+                return None
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
                     selected = (selected + 1) % len(cars)
@@ -326,20 +349,100 @@ def select_car(title_text, cars):
                 elif event.key == pygame.K_RETURN:
                     return cars[selected][1]
 
+def main_menu():
+    while True:
+        WIN.fill((20,20,20))
+        title = pygame.font.SysFont("comicsans", 60).render("Formula 1 Style Racing Game", True, (255,255,255))
+        WIN.blit(title,(WIDTH//2-title.get_width()//2, 100))
+        play_button.draw(WIN)
+        settings_button.draw(WIN)
+        help_button.draw(WIN)
+        quit_button.draw(WIN)
+        pygame.display.update()
 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if play_button.clicked(event):
+                return
+            if quit_button.clicked(event):
+                pygame.quit()
+                quit()
+            if settings_button.clicked(event):
+                settings()
+            if help_button.clicked(event):
+                howToPlay()
+            if back_button.clicked(event):
+                return None
+
+def settings():
+    while True:
+        WIN.fill((20,20,20))
+        title = pygame.font.SysFont("comicsans", 60).render("Settings", True, (255,255,255))
+        WIN.blit(title,(WIDTH//2-title.get_width()//2,60))
+        music = MAIN_FONT.render("Music: On", True, (255,255,255))
+        sfx = MAIN_FONT.render("Sound Effects: On", True, (255,255,255))
+        WIN.blit(music,(120,180))
+        WIN.blit(sfx,(120,230))
+        back_button.draw(WIN)
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if back_button.clicked(event):
+                return
+
+def howToPlay():
+    while True:
+        WIN.fill((20,20,20))
+        title = pygame.font.SysFont("comicsans", 55).render("How To Play", True,(255,255,255))
+        WIN.blit(title,(WIDTH//2-title.get_width()//2,50))
+        instructions = ["W - Accelerate", "S - Reverse", "A - Turn Left", "D - Turn Right", "", "Reach the finish line before your opponent", "Avoid crashing into the barriers", "Each time you reach the finish line first the level will increase and so is" ,"the computer car's speed."]
+        y = 150
+
+        for line in instructions:
+            text = MAIN_FONT.render(line, True, (255,255,255))
+            WIN.blit(text,(100,y))
+            y += 35
+        back_button.draw(WIN)
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if back_button.clicked(event):
+                return
+            
+back_button = Button(30, HEIGHT - 70, 140, 50, "Back")
+play_button = Button(WIDTH//2-150, 250, 300, 60, "Play")
+settings_button = Button(WIDTH//2-150, 330, 300, 60, "Settings")
+help_button = Button(WIDTH//2-150, 410, 300, 60, "How To Play")
+quit_button = Button(WIDTH//2-150, 490, 300, 60, "QUIT")
 
 run = True
 clock = pygame.time.Clock()
 images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
-selected_car = select_car("Choose Your Car", CARS)
-available_opponents = []
-for name, image in CARS:
-    if image != selected_car:
-        available_opponents.append((name, image))
-selected_opponent = select_car("Choose Your Opponent", available_opponents)
+while True:
+    main_menu()
+    selected_car = select_car("Choose Your Car", CARS)
+    if selected_car is None:
+        continue
+
+    available_opponents = []
+    for name, image in CARS:
+        if image != selected_car:
+            available_opponents.append((name, image))
+
+    selected_opponent = select_car("Choose Your Opponent", available_opponents)
+    if selected_opponent is None:
+        continue
+    break
 start_lights()
-player_car = PlayerCar(selected_car, 3.5, 4)
-Computer_car = ComputerCar(selected_opponent, 1.5, 4, PATH)
+player_car = PlayerCar(select_car, 3.5,4)
+Computer_car = ComputerCar(selected_opponent, 1.5,4, PATH)
 game_info = GameInfo()
 
 while run:
@@ -376,5 +479,4 @@ while run:
 
 print(Computer_car.path)
 
-pygame.quit()   
-                                       
+pygame.quit()
