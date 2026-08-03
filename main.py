@@ -4,6 +4,7 @@ import time
 import math 
 from utils import scale_image, blit_rotate_center, blit_text_center
 pygame.font.init()
+pygame.mixer.init()
 
 GRASS = scale_image(pygame.image.load("imgs/grass.jpg"),2.5)
 TRACK = scale_image(pygame.image.load("imgs/track.png"),0.9)
@@ -14,12 +15,14 @@ FINISH_MASK = pygame.mask.from_surface(FINISH)
 FINISH_POSITION = (138, 250)
 REDBULL= scale_image(pygame.image.load("imgs/rb22.png"),0.03)
 MERCEDES = scale_image(pygame.image.load("imgs/w17.png"),0.0265)
-FERRARI = scale_image(pygame.image.load("imgs./Ferrari.png"), 0.0475)
-MCLAREN = scale_image(pygame.image.load("imgs./Mclaren.png"), 0.0140)
+FERRARI = scale_image(pygame.image.load("imgs/Ferrari.png"), 0.0475)
+MCLAREN = scale_image(pygame.image.load("imgs/Mclaren.png"), 0.0140)
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Formula 1 Style Racing Game")
 MAIN_FONT = pygame.font.SysFont("comicsans", 20)
+BUTTON_SOUND = pygame.mixer.Sound("audio/buttonClick.mp3")
+START_SOUND = pygame.mixer.Sound("audio/startLightedited.mp3")
 LIGHT_RADIUS = 22
 LIGHT_SPACING = 18
 CARS = [
@@ -76,7 +79,7 @@ class Button:
         mouse = pygame.mouse.get_pos()
         color = self.normal_color
         if self.rect.collidepoint(mouse):
-            color = self.normal_color
+            color = self.hover_color
         pygame.draw.rect(win, color, self.rect, border_radius=12)
         text = self.font.render(self.text, True, self.text_color)
         win.blit(text, (self.rect.centerx - text.get_width() // 2, self.rect.centery - text.get_height() // 2),)
@@ -242,6 +245,7 @@ def draw(win, images, player_car, computer_car, game_info):
 
 def start_lights():
     for lights_on in range(1,6):
+        START_SOUND.play()
         start = time.time()
         while time.time() - start < 1:
             WIN.fill((20,20,20))
@@ -330,6 +334,9 @@ def select_car(title_text, cars):
                 x, y, image.get_width(), image.get_height()
             )
 
+            if rect.collidepoint(mouse_pos):
+                selected = i
+
             if i == selected:
                 pygame.draw.rect(WIN, (255, 255, 0), rect.inflate(10, 10), 3)
         back_button.draw(WIN)
@@ -339,16 +346,16 @@ def select_car(title_text, cars):
                 pygame.quit()
                 quit()
             if back_button.clicked(event):
+                BUTTON_SOUND.play()
                 return None
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    selected = (selected + 1) % len(cars)
-
-                elif event.key == pygame.K_LEFT:
-                    selected = (selected - 1) % len(cars)
-
-                elif event.key == pygame.K_RETURN:
-                    return cars[selected][1]
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    for i, (name,image) in enumerate(cars):
+                        x = 120 + i * 170
+                        y = 180
+                        rect = pygame.Rect(x,y,image.get_width(),image.get_height())
+                        if rect.collidepoint(event.pos):
+                            return cars[i][1]
 
 def main_menu():
     while True:
@@ -367,15 +374,20 @@ def main_menu():
                 quit()
 
             if play_button.clicked(event):
+                BUTTON_SOUND.play()
                 return
             if quit_button.clicked(event):
+                BUTTON_SOUND.play()
                 pygame.quit()
                 sys.exit()
             if settings_button.clicked(event):
+                BUTTON_SOUND.play()
                 settings()
             if help_button.clicked(event):
+                BUTTON_SOUND.play()
                 howToPlay()
             if back_button.clicked(event):
+                BUTTON_SOUND.play()
                 return None
 
 def settings():
@@ -394,6 +406,7 @@ def settings():
                 pygame.quit()
                 quit()
             if back_button.clicked(event):
+                BUTTON_SOUND.play()
                 return
 
 def howToPlay():
@@ -415,6 +428,7 @@ def howToPlay():
                 pygame.quit()
                 quit()
             if back_button.clicked(event):
+                BUTTON_SOUND.play()
                 return
 
 def pause():
@@ -435,10 +449,13 @@ def pause():
                 pygame.quit()
                 sys.exit()   
             if resume_button.clicked(event):
+                BUTTON_SOUND.play()
                 return "resume"
             if menu_button.clicked(event):
+                BUTTON_SOUND.play()
                 return "menu"
             if Pause_quit_button.clicked(event):
+                BUTTON_SOUND.play()
                 pygame.quit()
                 quit()
 
