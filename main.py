@@ -1,3 +1,4 @@
+import sys
 import pygame
 import time
 import math 
@@ -369,7 +370,7 @@ def main_menu():
                 return
             if quit_button.clicked(event):
                 pygame.quit()
-                quit()
+                sys.exit()
             if settings_button.clicked(event):
                 settings()
             if help_button.clicked(event):
@@ -400,7 +401,7 @@ def howToPlay():
         WIN.fill((20,20,20))
         title = pygame.font.SysFont("comicsans", 55).render("How To Play", True,(255,255,255))
         WIN.blit(title,(WIDTH//2-title.get_width()//2,50))
-        instructions = ["W - Accelerate", "S - Reverse", "A - Turn Left", "D - Turn Right", "", "Reach the finish line before your opponent", "Avoid crashing into the barriers", "Each time you reach the finish line first the level will increase and so is" ,"the computer car's speed."]
+        instructions = ["W - Accelerate", "S - Reverse", "A - Turn Left", "D - Turn Right", "Pause - ESC", "", "Reach the finish line before your opponent", "Avoid crashing into the barriers", "Each time you reach the finish line first the level will increase and so is" ,"the computer car's speed."]
         y = 150
 
         for line in instructions:
@@ -415,18 +416,47 @@ def howToPlay():
                 quit()
             if back_button.clicked(event):
                 return
-            
+
+def pause():
+    
+    while True:
+        WIN.fill((20,20,20))
+
+        title = pygame.font.SysFont("comicsans", 60).render("PAUSED", True, (255,255,255))
+        WIN.blit(title, (WIDTH//2 - title.get_width()//2,100))
+
+        resume_button.draw(WIN)
+        menu_button.draw(WIN)
+        Pause_quit_button.draw(WIN)
+
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()   
+            if resume_button.clicked(event):
+                return "resume"
+            if menu_button.clicked(event):
+                return "menu"
+            if Pause_quit_button.clicked(event):
+                pygame.quit()
+                quit()
+
 back_button = Button(30, HEIGHT - 70, 140, 50, "Back")
 play_button = Button(WIDTH//2-150, 250, 300, 60, "Play")
 settings_button = Button(WIDTH//2-150, 330, 300, 60, "Settings")
 help_button = Button(WIDTH//2-150, 410, 300, 60, "How To Play")
 quit_button = Button(WIDTH//2-150, 490, 300, 60, "QUIT")
+resume_button = Button(WIDTH//2-150,250,300,60,"Resume")
+menu_button = Button(WIDTH//2-150,340,300,60,"Main Menu")
+Pause_quit_button = Button(WIDTH//2-150,430,300,60,"Quit")
 
-run = True
 clock = pygame.time.Clock()
-images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
+images = [(GRASS, (0,0)), (TRACK, (0,0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
+
 while True:
     main_menu()
+
     selected_car = select_car("Choose Your Car", CARS)
     if selected_car is None:
         continue
@@ -439,44 +469,53 @@ while True:
     selected_opponent = select_car("Choose Your Opponent", available_opponents)
     if selected_opponent is None:
         continue
-    break
-start_lights()
-player_car = PlayerCar(select_car, 3.5,4)
-Computer_car = ComputerCar(selected_opponent, 1.5,4, PATH)
-game_info = GameInfo()
 
-while run:
-    clock.tick(FPS)
+    start_lights()
+    player_car = PlayerCar(selected_car,3.5,4)
+    Computer_car = ComputerCar(selected_opponent,1.5,4,PATH)
+    game_info = GameInfo()
 
-    draw(WIN, images, player_car, Computer_car, game_info)
+    run = True
 
-    while not game_info.started:
-        blit_text_center(WIN, MAIN_FONT, f"Press any key to start level {game_info.level}!")
-        pygame.display.update()
+    while run:
+        clock.tick(FPS)
+        draw(WIN,images,player_car,Computer_car,game_info)
+        while not game_info.started:
+            blit_text_center(WIN,MAIN_FONT,f"Press any key to start level {game_info.level}!")
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+
+                if event.type == pygame.KEYDOWN:
+                    game_info.start_level()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                break
-
+                quit()
             if event.type == pygame.KEYDOWN:
-                game_info.start_level()
+                if event.key == pygame.K_ESCAPE:
+                    choice = pause()
+                    if choice == "resume":
+                        continue
+                    if choice == "menu":
+                        run = False
+                        break
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
+        if not run:
             break
 
-    move_player(player_car)
-    Computer_car.move()
-    handle_collision(player_car, Computer_car, game_info)
+        move_player(player_car)
+        Computer_car.move()
+        handle_collision(player_car,Computer_car,game_info)
 
-    if game_info.game_finished():
-        blit_text_center(WIN, MAIN_FONT, "You won the game!")
-        pygame.time.wait(5000)
-        game_info.reset()
-        player_car.reset()
-        Computer_car.reset()
-
-print(Computer_car.path)
+        if game_info.game_finished():
+            blit_text_center(WIN, MAIN_FONT, "You won the game!")
+            pygame.display.update()
+            pygame.time.wait(5000)
+            run = False
 
 pygame.quit()
