@@ -1,10 +1,11 @@
 import sys
+import asyncio
 import pygame
 import time
 import math 
 from utils import scale_image, blit_rotate_center, blit_text_center
 pygame.font.init()
-pygame.mixer.init()
+pygame.mixer.init()  
 
 GRASS = scale_image(pygame.image.load("imgs/grass.jpg"),2.5)
 TRACK = scale_image(pygame.image.load("imgs/track.png"),0.9)
@@ -21,8 +22,11 @@ WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Formula 1 Style Racing Game")
 MAIN_FONT = pygame.font.SysFont("comicsans", 20)
-BUTTON_SOUND = pygame.mixer.Sound("audio/buttonClick.mp3")
-START_SOUND = pygame.mixer.Sound("audio/startLightedited.mp3")
+BUTTON_SOUND = pygame.mixer.Sound("audio/buttonClick.ogg")
+START_SOUND = pygame.mixer.Sound("audio/startLightedited.ogg")
+music_on = True
+sfx_on = True
+volume = 1.0
 LIGHT_RADIUS = 22
 LIGHT_SPACING = 18
 CARS = [
@@ -245,7 +249,7 @@ def draw(win, images, player_car, computer_car, game_info):
 
 def start_lights():
     for lights_on in range(1,6):
-        START_SOUND.play()
+        play_sfx(START_SOUND)
         start = time.time()
         while time.time() - start < 1:
             WIN.fill((20,20,20))
@@ -346,7 +350,7 @@ def select_car(title_text, cars):
                 pygame.quit()
                 quit()
             if back_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 return None
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -374,31 +378,46 @@ def main_menu():
                 quit()
 
             if play_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 return
             if quit_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 pygame.quit()
                 sys.exit()
             if settings_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 settings()
             if help_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 howToPlay()
             if back_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 return None
 
+def play_sfx(sound):
+    if sfx_on:
+        sound.set_volume(volume)
+        sound.play()
+
 def settings():
+    global music_on, sfx_on,volume
+    dragging = False
     while True:
         WIN.fill((20,20,20))
         title = pygame.font.SysFont("comicsans", 60).render("Settings", True, (255,255,255))
         WIN.blit(title,(WIDTH//2-title.get_width()//2,60))
-        music = MAIN_FONT.render("Music: On", True, (255,255,255))
-        sfx = MAIN_FONT.render("Sound Effects: On", True, (255,255,255))
+        music = MAIN_FONT.render("Music: On" if music_on else "Music: Off", True, (255,255,255))
+        sfx = MAIN_FONT.render("Sound Effects: On" if sfx_on else "Sound Effects: Off", True, (255,255,255))
+        volume_text = MAIN_FONT.render(f"Volume: {int(volume * 100)}%", True, (255,255,255))
         WIN.blit(music,(120,180))
         WIN.blit(sfx,(120,230))
+        WIN.blit(volume_text,(120,290))
+        music_rect = pygame.Rect(120,180,250,40)
+        sfx_rect = pygame.Rect(120,230,250,40)
+        slider_rect = pygame.Rect(120,330,250,8)
+        pygame.draw.rect(WIN, (120,120,120), slider_rect)
+        knob_x = slider_rect.x + int(volume * slider_rect.width)
+        pygame.draw.circle(WIN, (255,0,0), (knob_x, slider_rect.centery), 10)
         back_button.draw(WIN)
         pygame.display.update()
         for event in pygame.event.get():
@@ -406,8 +425,24 @@ def settings():
                 pygame.quit()
                 quit()
             if back_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 return
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if music_rect.collidepoint(event.pos):
+                    music_on = not music_on
+                if sfx_rect.collidepoint(event.pos):
+                    sfx_on = not sfx_on
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if slider_rect.collidepoint(event.pos):
+                    dragging = True
+            if event.type == pygame.MOUSEBUTTONUP:
+                dragging = False
+            if event.type == pygame.MOUSEMOTION and dragging:
+                x = max(slider_rect.left, min(event.pos[0], slider_rect.right))
+                volume = (x - slider_rect.left) / slider_rect.width
+                BUTTON_SOUND.set_volume(volume)
+                START_SOUND.set_volume(volume)
+
 
 def howToPlay():
     while True:
@@ -428,7 +463,7 @@ def howToPlay():
                 pygame.quit()
                 quit()
             if back_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 return
 
 def pause():
@@ -449,13 +484,13 @@ def pause():
                 pygame.quit()
                 sys.exit()   
             if resume_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 return "resume"
             if menu_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 return "menu"
             if Pause_quit_button.clicked(event):
-                BUTTON_SOUND.play()
+                play_sfx(BUTTON_SOUND)
                 pygame.quit()
                 quit()
 
@@ -533,6 +568,7 @@ while True:
             blit_text_center(WIN, MAIN_FONT, "You won the game!")
             pygame.display.update()
             pygame.time.wait(5000)
-            run = False
+            run = False 
+    
 
 pygame.quit()
