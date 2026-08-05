@@ -1,29 +1,29 @@
 import sys
-import asyncio
+import random
 import pygame
 import time
 import math 
-from utils import scale_image, blit_rotate_center, blit_text_center
+from utils import scale_image, blit_rotate_center, blit_text_center, resource_path
 pygame.font.init()
 pygame.mixer.init()  
 
-GRASS = scale_image(pygame.image.load("imgs/grass.jpg"),2.5)
-TRACK = scale_image(pygame.image.load("imgs/track.png"),0.9)
-TRACK_BORDER = scale_image(pygame.image.load("imgs/track-border.png"),0.9)
+GRASS = scale_image(pygame.image.load(resource_path("imgs/grass.jpg")),2.5)
+TRACK = scale_image(pygame.image.load(resource_path("imgs/track.png")),0.9)
+TRACK_BORDER = scale_image(pygame.image.load(resource_path("imgs/track-border.png")),0.9)
 TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER) 
-FINISH = scale_image(pygame.image.load("imgs/Finish_line.png"), 0.22)
+FINISH = scale_image(pygame.image.load(resource_path("imgs/Finish_line.png")), 0.22)
 FINISH_MASK = pygame.mask.from_surface(FINISH)
 FINISH_POSITION = (138, 250)
-REDBULL= scale_image(pygame.image.load("imgs/rb22.png"),0.03)
-MERCEDES = scale_image(pygame.image.load("imgs/w17.png"),0.0265)
-FERRARI = scale_image(pygame.image.load("imgs/Ferrari.png"), 0.0475)
-MCLAREN = scale_image(pygame.image.load("imgs/Mclaren.png"), 0.0140)
+REDBULL= scale_image(pygame.image.load(resource_path("imgs/rb22.png")),0.03)
+MERCEDES = scale_image(pygame.image.load(resource_path("imgs/w17.png")),0.0265)
+FERRARI = scale_image(pygame.image.load(resource_path("imgs/Ferrari.png")), 0.0475)
+MCLAREN = scale_image(pygame.image.load(resource_path("imgs/Mclaren.png")), 0.0140)
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Formula 1 Style Racing Game")
 MAIN_FONT = pygame.font.SysFont("comicsans", 20)
-BUTTON_SOUND = pygame.mixer.Sound("audio/buttonClick.ogg")
-START_SOUND = pygame.mixer.Sound("audio/startLightedited.ogg")
+BUTTON_SOUND = pygame.mixer.Sound(resource_path("audio/buttonClick.ogg"))
+START_SOUND = pygame.mixer.Sound(resource_path("audio/startLightedited.ogg"))
 music_on = True
 sfx_on = True
 volume = 1.0
@@ -267,7 +267,7 @@ def start_lights():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    quit()
+                    sys.exit()
     WIN.fill((20,20,20))
     text = pygame.font.SysFont("comicsans", 50).render("GO!", True, (255, 255, 255))     
     WIN.blit(text, (WIDTH//2-text.get_width()//2, 220))      
@@ -348,7 +348,7 @@ def select_car(title_text, cars):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
+                sys.exit()
             if back_button.clicked(event):
                 play_sfx(BUTTON_SOUND)
                 return None
@@ -375,7 +375,7 @@ def main_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
+                sys.exit()
 
             if play_button.clicked(event):
                 play_sfx(BUTTON_SOUND)
@@ -423,7 +423,7 @@ def settings():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
+                sys.exit()
             if back_button.clicked(event):
                 play_sfx(BUTTON_SOUND)
                 return
@@ -461,7 +461,7 @@ def howToPlay():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
+                sys.exit()
             if back_button.clicked(event):
                 play_sfx(BUTTON_SOUND)
                 return
@@ -492,7 +492,7 @@ def pause():
             if Pause_quit_button.clicked(event):
                 play_sfx(BUTTON_SOUND)
                 pygame.quit()
-                quit()
+                sys.exit()
 
 back_button = Button(30, HEIGHT - 70, 140, 50, "Back")
 play_button = Button(WIDTH//2-150, 250, 300, 60, "Play")
@@ -539,7 +539,7 @@ while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    quit()
+                    sys.exit()
 
                 if event.type == pygame.KEYDOWN:
                     game_info.start_level()
@@ -547,7 +547,7 @@ while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
+                sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     choice = pause()
@@ -569,6 +569,7 @@ while True:
             pygame.display.update()
             pygame.time.wait(5000)
             run = False 
-    
+
+        
 
 pygame.quit()
