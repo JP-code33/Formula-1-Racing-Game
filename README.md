@@ -26,4 +26,4 @@ You can install this game right on your computer. You just simply have to go ove
 
 # About
 
-This project was made for a Stardance Challenge. I have been learning a lot of new things in the world of coding. This is my first experience developing a game using Pygame and I would say it made it easier for me to code the game. I used the tutorial to make the basic version of the game but then I expanded a lot to make the game better.
+This project was made for a Stardance Challenge. I have been learning a lot of new things in the world of coding. This is my first experience developing a game using Pygame and I would say it made it easier for me to code the game. I used the tutorial to make the basic version of the game but then I expanded a lot to make the game better. Thank you for testing my app!
